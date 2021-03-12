@@ -33,3 +33,8 @@ Route::post('users','App\Http\Controllers\UserController@store');
 Route::put('users/{id}','App\Http\Controllers\UserController@update');
 //delete user id
 Route::delete('users/{id}','App\Http\Controllers\UserController@destroy');
+
+//Route::group(['prefix' => 'long', 'as' => 'api.', 'middleware' => ['cors', 'validate_api_token']], function () {
+//    //get all users
+//    Route::get('users','App\Http\Controllers\UserController@index');
+//});
