@@ -3,11 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePostRequest;
+use App\Http\Requests\UpdateRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Http\Response;
 class UserController extends Controller
 {
     /**
@@ -98,7 +99,6 @@ class UserController extends Controller
         return [
             'code' => 1,
             'data' => [
-                'success' => "Created successfuly",
                 'user' => response($user)
             ]
         ];
@@ -112,10 +112,26 @@ class UserController extends Controller
      * @param Request $request
      * @return array
      */
-    public function update($id, Request $request)
+    public function update($id, UpdateRequest $request)
     {
+
+        $user = User::find($id);
+        if(empty($user)){
+            return [
+                'code'=>0
+            ];
+        }
+        $user->update([
+            'first_name' => $request->input('first_name'),
+            'last_name' => $request->input('last_name'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password'))
+        ]);
         return [
-            'code'=>User::where('id',$id)->update($request->all())
+            'code'=>1,
+            'data'=>[
+                'user'=>$user
+            ]
         ];
     }
 
@@ -126,9 +142,20 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
+        $user = User::find($id);
+        if(empty($user)){
+            return [
+                'code'=>0
+            ];
+        }
+
+        User::destroy($id);
+
         return [
-            'code'=>User::where('id',$id)->delete()
+            'code'=>1,
+            'user'=>$user
         ];
+
     }
 
 

@@ -13,12 +13,7 @@ use App\Http\Controllers\testController;
 | is assigned the "api" middleware group. Enjoy building your API!
 |
 */
-////
-//Route::middleware('auth:api')->get('/user', function (Request $request) {
-//    return $request->user();
-//});
 
-//Route::get('/data',[testController::class,'getData']);
 
 Route::get('data','App\Http\Controllers\UserController@getData');
 //get all users
@@ -33,8 +28,3 @@ Route::post('users','App\Http\Controllers\UserController@store');
 Route::put('users/{id}','App\Http\Controllers\UserController@update');
 //delete user id
 Route::delete('users/{id}','App\Http\Controllers\UserController@destroy');
-
-//Route::group(['prefix' => 'long', 'as' => 'api.', 'middleware' => ['cors', 'validate_api_token']], function () {
-//    //get all users
-//    Route::get('users','App\Http\Controllers\UserController@index');
-//});

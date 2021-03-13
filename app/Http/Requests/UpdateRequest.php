@@ -7,7 +7,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Exceptions\HttpResponseException;
 
-class StorePostRequest extends FormRequest
+class UpdateRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -27,17 +27,16 @@ class StorePostRequest extends FormRequest
     public function rules()
     {
         return [
-            'first_name' => 'required|max:255',
-            'last_name' => 'required',
-            'email' => 'unique:users,email|required|regex:/^.+@.+$/i',
-            'password'=>'required'
+            'first_name' => 'max:255',
+            'last_name' => 'max:255',
+            'email' => 'unique:users,email|regex:/^.+@.+$/i'
         ];
     }
     public function messages()
     {
         return [
-            'first_name.required' => 'First name is required!',
-            'last_name.required' => 'Last name is required!',
+            'first_name.max' => 'First name too long!',
+            'last_name.max' => 'Last name too long!',
             'email.regex' => 'The format email is not correct',
             'email.unique' => 'The email has been existed',
         ];
@@ -53,4 +52,6 @@ class StorePostRequest extends FormRequest
                 'error' => $errors
             ]));
     }
+
 }
+
