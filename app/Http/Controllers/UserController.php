@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StorePostRequest;
-use App\Http\Requests\UpdateRequest;
+use App\Http\Requests\SearchUsersRequest;
+use App\Http\Requests\UsersStoreRequest;
+use App\Http\Requests\UsersUpdateRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Http\Response;
+
 class UserController extends Controller
 {
     /**
@@ -17,7 +18,8 @@ class UserController extends Controller
      */
     public function index()
     {
-        return User::all();
+        $query = "SELECT * FROM users WHERE is_deleted = 1";
+        return DB::select($query);
     }
 
     /**
@@ -27,16 +29,46 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $users = User::find($id);
-        if (empty($users)) {
+        $query = "SELECT * FROM users WHERE id = $id and is_deleted = 1";
+        $result = DB::select($query);
+        if (empty($result)) {
             return [
-                'code'=>0,
-                'data'=>[]
+                'code' => 0,
+                'data' => []
             ];
         }
         return [
-            'code'=>1,
-            'data'=>[$users]
+            'code' => 1,
+            'data' => [$result]
+        ];
+    }
+
+    public function search(SearchUsersRequest $request)
+    {
+        $condition = "";
+        $input = $request->input();
+        foreach ($input as $key => $val) {
+            if ($val) {
+
+                if (end($input) !== $val) {
+                    $condition .= "$key LIKE '%$val%' OR ";
+                } else {
+                    $condition .= "$key LIKE '%$val%'";
+                }
+            }
+        }
+
+        $query = "SELECT * FROM users WHERE $condition";
+        $result = DB::select($query);
+        if (empty($result)) {
+            return [
+                'code' => 0,
+                'data' => []
+            ];
+        }
+        return [
+            'code' => 1,
+            'data' => [$result]
         ];
     }
 
@@ -44,9 +76,20 @@ class UserController extends Controller
      * pagination table users
      * @return array
      */
-    public function pagination(){
-        $users = DB::table('users')->paginate(5);
-        return $users;
+    public function pagination($num_page = 10)
+    {
+        $total = DB::select('SELECT COUNT(*) as count FROM users');
+        $total = $total[0]->count;
+        $users = DB::select("SELECT id, first_name, last_name, email, email_verified_at,is_deleted,remember_token,created_at,updated_at FROM users LIMIT $num_page");
+        $testusers = DB::select("SELECT * FROM users LIMIT 10");
+        $result = [
+            'total' => $total,
+            'users'=> $testusers
+        ];
+        return [
+            'code' => 1,
+            'data' => $users
+        ];
     }
 
     /**
@@ -54,56 +97,18 @@ class UserController extends Controller
      * @param Request $request
      * @return mixed
      */
-    public function store(StorePostRequest $request)
+    public function store(UsersStoreRequest $request)
     {
-//        $validator = Validator::make($request->all(),
-//            [
-//                'first_name' => 'required|max:255',
-//                'last_name' => 'required',
-//                'email' => 'unique:users,email|required|regex:/^.+@.+$/i'
-//            ],
-//            [
-//                'first_name.required' => 'Loi ne',
-//                'email.regex' => 'Email sai roi',
-//                'email.unique' => 'Email da ton tai'
-//            ]
-//        );
-//        if ($validator->fails()) {
-//
-//            return [
-//                'code'=>0,
-//                'data'=>[
-//                    'error'=>$validator->errors()
-//                ]
-//            ];
-//        } else {
-//            DB::table('users')->insert([
-//                'first_name' => $request->get('first_name'),
-//                'last_name' => $request->get('last_name'),
-//                'email' => $request->get('email'),
-//                'password' => Hash::make($request->get('password'))
-//            ]);
-//
-//            return [
-//                'code' => 1
-//            ];
-//        }
+        $query = "INSERT INTO users (first_name,last_name,email, password) VALUES (?,?,?,?)";
+        $values = [$request->input('first_name'), $request->input('last_name'), $request->input('email'), Hash::make($request->input('password'))];
 
-        $user = User::create([
-            "first_name" => $request->input('first_name'),
-            "last_name" => $request->input('last_name'),
-            "password" => Hash::make($request->input('password')),
-            "email" => $request->input('email')
-        ]);
-
+        $result = DB::insert($query, $values);
         return [
             'code' => 1,
             'data' => [
-                'user' => response($user)
+                'user' => $result
             ]
         ];
-
-
     }
 
     /**
@@ -112,25 +117,36 @@ class UserController extends Controller
      * @param Request $request
      * @return array
      */
-    public function update($id, UpdateRequest $request)
+    public function update($id, UsersUpdateRequest $request)
     {
+        $col = "";
+        $input = $request->input();
+        foreach ($input as $key => $val) {
+            if ($val) {
+                if ($key === "password") {
+                    $val = Hash::make($val);
+                }
 
-        $user = User::find($id);
-        if(empty($user)){
+                if (end($input) !== $val) {
+                    $col .= "$key= '$val',";
+                } else {
+                    $col .= "$key='$val'";
+                }
+
+            }
+        }
+        $query = "update users set $col where id = $id";
+
+        $result = DB::update($query);
+        if (empty($result)) {
             return [
-                'code'=>0
+                'code' => 0
             ];
         }
-        $user->update([
-            'first_name' => $request->input('first_name'),
-            'last_name' => $request->input('last_name'),
-            'email' => $request->input('email'),
-            'password' => Hash::make($request->input('password'))
-        ]);
         return [
-            'code'=>1,
-            'data'=>[
-                'user'=>$user
+            'code' => 1,
+            'data' => [
+                'user' => self::show($id)
             ]
         ];
     }
@@ -142,18 +158,16 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $user = User::find($id);
-        if(empty($user)){
+        $query = "update users set is_deleted = 0 where id = $id";
+        $result = DB::update($query);
+        if (empty($result)) {
             return [
-                'code'=>0
+                'code' => 0
             ];
         }
-
-        User::destroy($id);
-
         return [
-            'code'=>1,
-            'user'=>$user
+            'code' => 1,
+            'user' => $result
         ];
 
     }

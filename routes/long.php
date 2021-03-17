@@ -14,14 +14,15 @@ use App\Http\Controllers\testController;
 |
 */
 
-
 Route::get('data','App\Http\Controllers\UserController@getData');
 //get all users
 Route::get('users','App\Http\Controllers\UserController@index');
 //get one user base on id
 Route::get('users/{id}','App\Http\Controllers\UserController@show');
 //pagination for table users
-Route::get('pagination','App\Http\Controllers\UserController@pagination');
+Route::get('pagination/{num_page}','App\Http\Controllers\UserController@pagination');
+//search
+Route::get('search','App\Http\Controllers\UserController@search');
 //create user
 Route::post('users','App\Http\Controllers\UserController@store');
 //update user id
