@@ -27,18 +27,13 @@ class UsersUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'first_name' => 'max:255',
-            'last_name' => 'max:255',
-            'email' => 'unique:users,email|regex:/^.+@.+$/i'
+            'email' => 'email'
         ];
     }
     public function messages()
     {
         return [
-            'first_name.max' => 'First name too long!',
-            'last_name.max' => 'Last name too long!',
-            'email.regex' => 'The format email is not correct',
-            'email.unique' => 'The email has been existed',
+            'email.email' => 'The email format not true!',
         ];
     }
 

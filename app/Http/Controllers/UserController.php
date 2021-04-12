@@ -9,7 +9,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Pagination\Paginator;
 class UserController extends Controller
 {
     /**
@@ -39,7 +39,7 @@ class UserController extends Controller
         }
         return [
             'code' => 1,
-            'data' => [$result]
+            'data' => $result
         ];
     }
 
@@ -76,19 +76,17 @@ class UserController extends Controller
      * pagination table users
      * @return array
      */
-    public function pagination($num_page = 10)
+    public function pagination($num_page)
     {
-        $total = DB::select('SELECT COUNT(*) as count FROM users');
-        $total = $total[0]->count;
-        $users = DB::select("SELECT id, first_name, last_name, email, email_verified_at,is_deleted,remember_token,created_at,updated_at FROM users LIMIT $num_page");
-        $testusers = DB::select("SELECT * FROM users LIMIT 10");
-        $result = [
-            'total' => $total,
-            'users'=> $testusers
-        ];
+//        $total = DB::select('SELECT COUNT(*) as count FROM users');
+//        $total = $total[0]->count;
+//        $users = DB::select("SELECT id, first_name, last_name, email, email_verified_at,is_deleted,remember_token,created_at,updated_at FROM users LIMIT $num_page");
+            $user= DB::table('users')->Paginate($num_page);
         return [
             'code' => 1,
-            'data' => $users
+            'data' => [
+                'total'=>$user
+            ]
         ];
     }
 
@@ -117,37 +115,22 @@ class UserController extends Controller
      * @param Request $request
      * @return array
      */
-    public function update($id, UsersUpdateRequest $request)
+    public function update(UsersUpdateRequest $request,$id)
     {
-        $col = "";
-        $input = $request->input();
-        foreach ($input as $key => $val) {
-            if ($val) {
-                if ($key === "password") {
-                    $val = Hash::make($val);
-                }
+        $user = User::find($id);
 
-                if (end($input) !== $val) {
-                    $col .= "$key= '$val',";
-                } else {
-                    $col .= "$key='$val'";
-                }
-
-            }
-        }
-        $query = "update users set $col where id = $id";
-
-        $result = DB::update($query);
-        if (empty($result)) {
+        //not find user
+        if(empty($user)) {
             return [
-                'code' => 0
+                "code"=> 0,
+                "data"=>[]
             ];
         }
+        $dataRequest = $request->only('first_name', 'last_name', 'email', 'password');
+        $user->update($dataRequest);
         return [
-            'code' => 1,
-            'data' => [
-                'user' => self::show($id)
-            ]
+            "code"=> 1,
+            "data"=>[$user]
         ];
     }
 
