@@ -14,12 +14,35 @@ class UserController extends Controller
 {
     /**
      * get all users
-     * @return object
+     * @return array
      */
     public function index()
     {
-        $query = "SELECT * FROM users WHERE is_deleted = 1";
-        return DB::select($query);
+        $userModel = new User();
+
+        $selectRawQuery = [
+            [
+                'strRaw'=>'u.first_name,u.last_name,u.email,u.phone',
+                'params'=>[]
+            ]
+        ];
+        $whereRawQuery = [
+            [
+                'strRaw'=>'u.is_deleted <> ?',
+                'params'=>[1]
+            ]
+        ];
+        $user = $userModel->getListUser($selectRawQuery,$whereRawQuery);
+        if (empty($user)) {
+            return [
+                'code' => 0,
+                'data' => []
+            ];
+        }
+        return [
+            'code' => 1,
+            'data' => $user
+        ];
     }
 
     /**
@@ -29,9 +52,22 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $query = "SELECT * FROM users WHERE id = $id and is_deleted = 1";
-        $result = DB::select($query);
-        if (empty($result)) {
+        $userModel = new User();
+
+        $selectRawQuery = [
+            [
+                'strRaw'=>'u.first_name,u.last_name,u.email,u.phone',
+                'params'=>[]
+            ]
+        ];
+        $whereRawQuery = [
+            [
+                'strRaw'=>'u.is_deleted <> ? AND u.user_id = ?',
+                'params'=>[1,$id]
+            ]
+        ];
+        $user = $userModel->getDetailUser($selectRawQuery,$whereRawQuery);
+        if (empty($user)) {
             return [
                 'code' => 0,
                 'data' => []
@@ -39,7 +75,7 @@ class UserController extends Controller
         }
         return [
             'code' => 1,
-            'data' => $result
+            'data' => $user
         ];
     }
 
@@ -95,19 +131,19 @@ class UserController extends Controller
      * @param Request $request
      * @return mixed
      */
-    public function store(UsersStoreRequest $request)
-    {
-        $query = "INSERT INTO users (first_name,last_name,email, password) VALUES (?,?,?,?)";
-        $values = [$request->input('first_name'), $request->input('last_name'), $request->input('email'), Hash::make($request->input('password'))];
-
-        $result = DB::insert($query, $values);
-        return [
-            'code' => 1,
-            'data' => [
-                'user' => $result
-            ]
-        ];
-    }
+//    public function store(UsersStoreRequest $request)
+//    {
+//        $query = "INSERT INTO users (first_name,last_name,email, password) VALUES (?,?,?,?)";
+//        $values = [$request->input('first_name'), $request->input('last_name'), $request->input('email'), Hash::make($request->input('password'))];
+//
+//        $result = DB::insert($query, $values);
+//        return [
+//            'code' => 1,
+//            'data' => [
+//                'user' => $result
+//            ]
+//        ];
+//    }
 
     /**
      * update user
@@ -141,7 +177,7 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $query = "update users set is_deleted = 0 where id = $id";
+        $query = "update users set is_deleted = 1 where user_id = $id";
         $result = DB::update($query);
         if (empty($result)) {
             return [
@@ -149,8 +185,7 @@ class UserController extends Controller
             ];
         }
         return [
-            'code' => 1,
-            'user' => $result
+            'code' => 1
         ];
 
     }

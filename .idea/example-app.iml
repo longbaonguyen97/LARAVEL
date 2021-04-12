@@ -131,5 +131,6 @@
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="lab-demo" />
     <orderEntry type="module" module-name="lararvel-20210411" />
+    <orderEntry type="module" module-name="frontend-api" />
   </component>
 </module>
