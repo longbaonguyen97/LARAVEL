@@ -21,18 +21,18 @@ Route::group(['middleware'=>'auth:api'], function (){
 Route::post('login','App\Http\Controllers\LoginController@login');
 
 //get all users
-Route::get('users','App\Http\Controllers\UserController@index');
+Route::get('users','App\Http\Controllers\UserController@getListUsers');
 //get one user base on id
-Route::get('users/{id}','App\Http\Controllers\UserController@show');
+Route::get('users/{id}','App\Http\Controllers\UserController@getUserId');
 //create user
-Route::post('users','App\Http\Controllers\UserController@store');
+Route::post('users','App\Http\Controllers\UserController@createUser');
 //update user id
 Route::post('users/{id}','App\Http\Controllers\UserController@update');
 
 
 Route::get('data','App\Http\Controllers\UserController@getData');
 //pagination for table users
-Route::get('pagination/{num_page}','App\Http\Controllers\UserController@pagination');
+Route::get('pagination/{num_page}','App\Http\Controllers\UserController@getUsersPagination');
 //search
 Route::get('search','App\Http\Controllers\UserController@search');
 //delete user id
